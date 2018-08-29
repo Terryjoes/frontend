@@ -237,6 +237,7 @@ export const smartLockSignIn = (
             csrfToken,
         }),
     }).then(r => {
+        console.log(r);
         if (r.status === 200) {
             console.log('got success');
             window.location.href = returnUrl;
