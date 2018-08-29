@@ -1,5 +1,5 @@
 // @flow
-
+import { addCookie, getCookie } from 'lib/cookies';
 import fastdom from 'lib/fastdom-promise';
 import {
     getUserFromCookie,
@@ -29,70 +29,87 @@ const updateCommentLink = (commentItems): void => {
     }
 };
 
-const showMyAccountIfNecessary = (): void => {
-    if (!isUserLoggedIn()) {
-        // show pw manager popup
-        if (window.PasswordCredential) {
-            // Call navigator.credentials.get() to retrieve stored
-            // PasswordCredentials or FederatedCredentials.
-            // do the signin
-            // $FlowFixMe
-            navigator.credentials
-                .get({
-                    password: true,
-                })
-                .then(creds => {
-                    if (creds) {
-                        smartLockSignIn(creds, 'foo', 'bar');
-                        console.log(creds);
-                        // do login
-                    } else {
-                        console.log('no creds');
-                    }
-                });
-        }
-        return;
+const PW_MANAGER_DISMISSED = 'GU_PWMANAGER_DISMISSED';
+
+const loginWithPasswordManager = (): Promise<boolean> => {
+    if (window.PasswordCredential && getCookie(PW_MANAGER_DISMISSED) === null) {
+        // $FlowFixMe
+        return navigator.credentials
+            .get({
+                password: true,
+            })
+            .then(creds => {
+                if (creds) {
+                    return smartLockSignIn(creds).then(cookies => {
+                        const expiryDate = new Date(cookies.expiresAt);
+                        const dayInMilliseconds = 86400000;
+                        const daysUntilExpiry = (expiryDate.getTime() - new Date().getTime()) / dayInMilliseconds;
+                        cookies.values.forEach(cookie => {
+                            addCookie(cookie.key, cookie.value, daysUntilExpiry );
+                        });
+                        return Promise.resolve(true);
+                    });
+                } else {
+                    // TODO: test if this works with no passwords saved
+                    addCookie(PW_MANAGER_DISMISSED, "true", 30);
+                    return Promise.resolve(false);
+                }
+            });
+    } else {
+        return Promise.resolve(false);
     }
-
-    fastdom
-        .read(() => ({
-            signIns: [...document.querySelectorAll('.js-navigation-sign-in')],
-            accountActionsLists: [
-                ...document.querySelectorAll('.js-navigation-account-actions'),
-            ],
-            commentItems: [
-                ...document.querySelectorAll('.js-show-comment-activity'),
-            ],
-            accountTrigger: document.querySelector('.js-user-account-trigger'),
-        }))
-        .then(els => {
-            const {
-                signIns,
-                accountActionsLists,
-                commentItems,
-                accountTrigger,
-            } = els;
-
-            return fastdom
-                .write(() => {
-                    signIns.forEach(signIn => {
-                        signIn.remove();
-                    });
-
-                    accountActionsLists.forEach(accountActions => {
-                        accountActions.classList.remove('is-hidden');
-                    });
-
-                    // We still want the button to be hidden, but tabbable now
-                    if (accountTrigger) {
-                        accountTrigger.classList.remove('is-hidden');
-                        accountTrigger.classList.add('u-h');
-                    }
-                })
-                .then(() => {
-                    updateCommentLink(commentItems);
-                });
-        });
 };
 
-export { showMyAccountIfNecessary };
+const showMyAccountIfNecessary = (): void => {
+    if (!isUserLoggedIn()) {
+        loginWithPasswordManager().then( isLoggedIn => {
+            if (isLoggedIn) {
+                return Promise.resolve(showMyAccountIfNecessary());
+            }
+        });
+    } else {
+        fastdom
+            .read(() => ({
+                signIns: [...document.querySelectorAll('.js-navigation-sign-in')],
+                accountActionsLists: [
+                    ...document.querySelectorAll('.js-navigation-account-actions'),
+                ],
+                commentItems: [
+                    ...document.querySelectorAll('.js-show-comment-activity'),
+                ],
+                accountTrigger: document.querySelector('.js-user-account-trigger'),
+            }))
+            .then(els => {
+                const {
+                    signIns,
+                    accountActionsLists,
+                    commentItems,
+                    accountTrigger,
+                } = els;
+
+                return fastdom
+                    .write(() => {
+                        signIns.forEach(signIn => {
+                            signIn.remove();
+                        });
+
+                        accountActionsLists.forEach(accountActions => {
+                            accountActions.classList.remove('is-hidden');
+                        });
+
+                        // We still want the button to be hidden, but tabbable now
+                        if (accountTrigger) {
+                            accountTrigger.classList.remove('is-hidden');
+                            accountTrigger.classList.add('u-h');
+                        }
+                    })
+                    .then(() => {
+                        updateCommentLink(commentItems);
+                    });
+            });
+
+    }
+
+    };
+
+export {showMyAccountIfNecessary};
