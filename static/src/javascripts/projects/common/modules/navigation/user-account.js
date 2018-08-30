@@ -30,6 +30,7 @@ const updateCommentLink = (commentItems): void => {
 };
 
 const PW_MANAGER_DISMISSED = 'GU_PWMANAGER_DISMISSED';
+const ONE_DAY_IN_MILLIS = 86400000;
 
 const loginWithPasswordManager = (): Promise<boolean> => {
     if (window.PasswordCredential && getCookie(PW_MANAGER_DISMISSED) === null) {
@@ -42,8 +43,7 @@ const loginWithPasswordManager = (): Promise<boolean> => {
                 if (creds) {
                     return smartLockSignIn(creds).then(cookies => {
                         const expiryDate = new Date(cookies.expiresAt);
-                        const dayInMilliseconds = 86400000;
-                        const daysUntilExpiry = (expiryDate.getTime() - new Date().getTime()) / dayInMilliseconds;
+                        const daysUntilExpiry = (expiryDate.getTime() - new Date().getTime()) / ONE_DAY_IN_MILLIS;
                         cookies.values.forEach(cookie => {
                             addCookie(cookie.key, cookie.value, daysUntilExpiry );
                         });
