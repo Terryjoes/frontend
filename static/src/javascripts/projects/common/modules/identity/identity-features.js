@@ -7,15 +7,17 @@ const CookieNames = {
 };
 
 class IdentityFeatures {
-    promptForSignin: any;
+    promptForSignIn: any;
 
     constructor(config: any = defaultConfig) {
         const isArticle = config.page.contentType === 'Article';
         const isInteractive = config.page.contentType === 'Interactive';
 
-        this.promptForSignin =
+        this.promptForSignIn =
             !isArticle &&
             !isInteractive &&
+            // $FlowFixMe
+            navigator.credentials &&
             window.PasswordCredential &&
             getCookie(CookieNames.PW_MANAGER_DISMISSED) === null;
     }

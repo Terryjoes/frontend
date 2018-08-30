@@ -4,12 +4,13 @@ import fastdom from 'lib/fastdom-promise';
 import {
     getUserFromCookie,
     isUserLoggedIn,
-    smartLockSignIn,
+    ajaxSignIn,
 } from 'common/modules/identity/api';
 import {
     identityFeatures,
     IdentityCookies,
 } from 'common/modules/identity/identity-features';
+import ophan from "ophan-tracker-js";
 
 const updateCommentLink = (commentItems): void => {
     const user = getUserFromCookie();
@@ -36,19 +37,23 @@ const updateCommentLink = (commentItems): void => {
 const ONE_DAY_IN_MILLIS = 86400000;
 
 const loginWithPasswordManager = (): Promise<boolean> => {
-    if (identityFeatures.promptForSignin) {
+    if (identityFeatures.promptForSignIn) {
         // $FlowFixMe
         return navigator.credentials
             .get({
-                password: true,
+                password: true
             })
             .then(creds => {
                 if (creds) {
-                    return smartLockSignIn(creds).then(cookies => {
+                    return ajaxSignIn(creds).then(cookies => {
                         const expiryDate = new Date(cookies.expiresAt);
                         const daysUntilExpiry =
                             (expiryDate.getTime() - new Date().getTime()) /
                             ONE_DAY_IN_MILLIS;
+                        ophan.record({
+                            component: 'pwmanager-api',
+                            value: 'conversion',
+                        });
                         cookies.values.forEach(cookie => {
                             addCookie(
                                 cookie.key,
@@ -57,10 +62,13 @@ const loginWithPasswordManager = (): Promise<boolean> => {
                             );
                         });
                         return Promise.resolve(true);
-                    });
+                    }).catch(() => Promise.resolve(false));
                 }
-                // TODO: test if this works with no passwords saved
-                addCookie(IdentityCookies.PW_MANAGER_DISMISSED, 'true', 30);
+                ophan.record({
+                    component: 'pwmanager-api',
+                    value: 'impression',
+                });
+                addCookie(IdentityCookies.PW_MANAGER_DISMISSED, 'true', 7);
                 return Promise.resolve(false);
             });
     }
