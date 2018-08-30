@@ -1,7 +1,6 @@
 // @flow
 import defaultConfig from 'lib/config';
 import { getCookie } from 'lib/cookies';
-import config from 'lib/config';
 
 const CookieNames = {
     PW_MANAGER_DISMISSED: 'GU_PWMANAGER_DISMISSED',
