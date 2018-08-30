@@ -1,9 +1,9 @@
 // @flow
 import defaultConfig from 'lib/config';
-import {getCookie} from 'lib/cookies';
+import { getCookie } from 'lib/cookies';
 
-export const IdentityCookies = {
-    PW_MANAGER_DISMISSED: 'GU_PWMANAGER_DISMISSED'
+const CookieNames = {
+    PW_MANAGER_DISMISSED: 'GU_PWMANAGER_DISMISSED',
 };
 
 class IdentityFeatures {
@@ -17,8 +17,10 @@ class IdentityFeatures {
             !isArticle &&
             !isInteractive &&
             window.PasswordCredential &&
-            getCookie(IdentityCookies.PW_MANAGER_DISMISSED) === null;
+            getCookie(CookieNames.PW_MANAGER_DISMISSED) === null;
     }
 }
 
 export const identityFeatures = new IdentityFeatures();
+
+export const IdentityCookies = CookieNames;

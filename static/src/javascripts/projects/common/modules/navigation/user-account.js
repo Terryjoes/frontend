@@ -1,12 +1,15 @@
 // @flow
-import { addCookie, getCookie } from 'lib/cookies';
+import { addCookie } from 'lib/cookies';
 import fastdom from 'lib/fastdom-promise';
 import {
     getUserFromCookie,
     isUserLoggedIn,
     smartLockSignIn,
 } from 'common/modules/identity/api';
-import { identityFeatures, IdentityCookies } from 'common/modules/identity/identity-features';
+import {
+    identityFeatures,
+    IdentityCookies,
+} from 'common/modules/identity/identity-features';
 
 const updateCommentLink = (commentItems): void => {
     const user = getUserFromCookie();
