@@ -10,7 +10,7 @@ import {
     identityFeatures,
     IdentityCookies,
 } from 'common/modules/identity/identity-features';
-import ophan from "ophan-tracker-js";
+import ophan from 'ophan-tracker-js';
 
 const updateCommentLink = (commentItems): void => {
     const user = getUserFromCookie();
@@ -41,28 +41,30 @@ const loginWithPasswordManager = (): Promise<boolean> => {
         // $FlowFixMe
         return navigator.credentials
             .get({
-                password: true
+                password: true,
             })
             .then(creds => {
                 if (creds) {
-                    return ajaxSignIn(creds).then(cookies => {
-                        const expiryDate = new Date(cookies.expiresAt);
-                        const daysUntilExpiry =
-                            (expiryDate.getTime() - new Date().getTime()) /
-                            ONE_DAY_IN_MILLIS;
-                        ophan.record({
-                            component: 'pwmanager-api',
-                            value: 'conversion',
-                        });
-                        cookies.values.forEach(cookie => {
-                            addCookie(
-                                cookie.key,
-                                cookie.value,
-                                daysUntilExpiry
-                            );
-                        });
-                        return Promise.resolve(true);
-                    }).catch(() => Promise.resolve(false));
+                    return ajaxSignIn(creds)
+                        .then(cookies => {
+                            const expiryDate = new Date(cookies.expiresAt);
+                            const daysUntilExpiry =
+                                (expiryDate.getTime() - new Date().getTime()) /
+                                ONE_DAY_IN_MILLIS;
+                            ophan.record({
+                                component: 'pwmanager-api',
+                                value: 'conversion',
+                            });
+                            cookies.values.forEach(cookie => {
+                                addCookie(
+                                    cookie.key,
+                                    cookie.value,
+                                    daysUntilExpiry
+                                );
+                            });
+                            return Promise.resolve(true);
+                        })
+                        .catch(() => Promise.resolve(false));
                 }
                 ophan.record({
                     component: 'pwmanager-api',
