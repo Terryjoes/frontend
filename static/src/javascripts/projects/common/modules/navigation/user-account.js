@@ -43,26 +43,30 @@ const loginWithPasswordManager = (): Promise<boolean> => {
                 if (creds) {
                     return smartLockSignIn(creds).then(cookies => {
                         const expiryDate = new Date(cookies.expiresAt);
-                        const daysUntilExpiry = (expiryDate.getTime() - new Date().getTime()) / ONE_DAY_IN_MILLIS;
+                        const daysUntilExpiry =
+                            (expiryDate.getTime() - new Date().getTime()) /
+                            ONE_DAY_IN_MILLIS;
                         cookies.values.forEach(cookie => {
-                            addCookie(cookie.key, cookie.value, daysUntilExpiry );
+                            addCookie(
+                                cookie.key,
+                                cookie.value,
+                                daysUntilExpiry
+                            );
                         });
                         return Promise.resolve(true);
                     });
-                } else {
-                    // TODO: test if this works with no passwords saved
-                    addCookie(PW_MANAGER_DISMISSED, "true", 30);
-                    return Promise.resolve(false);
                 }
+                // TODO: test if this works with no passwords saved
+                addCookie(PW_MANAGER_DISMISSED, 'true', 30);
+                return Promise.resolve(false);
             });
-    } else {
-        return Promise.resolve(false);
     }
+    return Promise.resolve(false);
 };
 
 const showMyAccountIfNecessary = (): void => {
     if (!isUserLoggedIn()) {
-        loginWithPasswordManager().then( isLoggedIn => {
+        loginWithPasswordManager().then(isLoggedIn => {
             if (isLoggedIn) {
                 return Promise.resolve(showMyAccountIfNecessary());
             }
@@ -70,14 +74,20 @@ const showMyAccountIfNecessary = (): void => {
     } else {
         fastdom
             .read(() => ({
-                signIns: [...document.querySelectorAll('.js-navigation-sign-in')],
+                signIns: [
+                    ...document.querySelectorAll('.js-navigation-sign-in'),
+                ],
                 accountActionsLists: [
-                    ...document.querySelectorAll('.js-navigation-account-actions'),
+                    ...document.querySelectorAll(
+                        '.js-navigation-account-actions'
+                    ),
                 ],
                 commentItems: [
                     ...document.querySelectorAll('.js-show-comment-activity'),
                 ],
-                accountTrigger: document.querySelector('.js-user-account-trigger'),
+                accountTrigger: document.querySelector(
+                    '.js-user-account-trigger'
+                ),
             }))
             .then(els => {
                 const {
@@ -107,9 +117,7 @@ const showMyAccountIfNecessary = (): void => {
                         updateCommentLink(commentItems);
                     });
             });
-
     }
+};
 
-    };
-
-export {showMyAccountIfNecessary};
+export { showMyAccountIfNecessary };

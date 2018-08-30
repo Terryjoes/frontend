@@ -20,8 +20,6 @@ const fbCheckKey = 'gu.id.nextFbCheck';
 let idApiRoot = null;
 let profileRoot = null;
 
-const ERR_FAILED_SIGNIN = 'Error signing in with smart lock';
-
 type PasswordCredential = {
     id: string,
     password: string,
@@ -217,9 +215,7 @@ export const updateUsername = (username: string): any => {
     return request;
 };
 
-export const smartLockSignIn = (
-    credentials: PasswordCredential
-) => {
+export const smartLockSignIn = (credentials: PasswordCredential) => {
     const url = `${profileRoot || ''}/actions/auth/ajax`;
     return fetch(url, {
         mode: 'cors',
@@ -227,7 +223,7 @@ export const smartLockSignIn = (
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: qs.stringify({
             email: credentials.id,
-            password: credentials.password
+            password: credentials.password,
         }),
     });
 };
