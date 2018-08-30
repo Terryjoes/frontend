@@ -6,6 +6,7 @@ import {
     isUserLoggedIn,
     smartLockSignIn,
 } from 'common/modules/identity/api';
+import { identityFeatures, IdentityCookies } from 'common/modules/identity/identity-features';
 
 const updateCommentLink = (commentItems): void => {
     const user = getUserFromCookie();
@@ -29,11 +30,10 @@ const updateCommentLink = (commentItems): void => {
     }
 };
 
-const PW_MANAGER_DISMISSED = 'GU_PWMANAGER_DISMISSED';
 const ONE_DAY_IN_MILLIS = 86400000;
 
 const loginWithPasswordManager = (): Promise<boolean> => {
-    if (window.PasswordCredential && getCookie(PW_MANAGER_DISMISSED) === null) {
+    if (identityFeatures.promptForSignin) {
         // $FlowFixMe
         return navigator.credentials
             .get({
@@ -57,7 +57,7 @@ const loginWithPasswordManager = (): Promise<boolean> => {
                     });
                 }
                 // TODO: test if this works with no passwords saved
-                addCookie(PW_MANAGER_DISMISSED, 'true', 30);
+                addCookie(IdentityCookies.PW_MANAGER_DISMISSED, 'true', 30);
                 return Promise.resolve(false);
             });
     }
